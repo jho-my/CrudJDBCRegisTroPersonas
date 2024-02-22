@@ -5,15 +5,15 @@ import java.sql.*;
 import javax.swing.JOptionPane;
 
 public class frmRegistros extends javax.swing.JFrame {
-
+    
     Conexion conectar = Conexion.getInstancia();
-
+    
     public frmRegistros() {
         initComponents();
         this.setTitle("Bienvenido al sistema");
-
+        
     }
-
+    
     private boolean ComprobarRepetidos(String nombre, String apellido, String profesion, String telefono, String residencia) {
         try {
             Connection conexion = conectar.ConecarBD();
@@ -27,23 +27,23 @@ public class frmRegistros extends javax.swing.JFrame {
              */
             String consulta
                     = "select * from personas where nombre = '" + nombre + "' and apellido ='" + apellido + "' and profesion = '" + profesion + "' and telefono = '" + telefono + "' and residencia ='" + residencia + "'";
-
+            
             PreparedStatement seleccion = conexion.prepareStatement(consulta);
-
+            
             ResultSet consultando = seleccion.executeQuery();
-
+            
             if (consultando.next()) {
                 return true;
             }
-
-            this.conectar.CerrarConecion();
+            
+           conectar.CerrarConecion();
         } catch (SQLException e) {
             System.out.println("Error al comprovar Repetidos " + e.getMessage());
         }
         return false;
-
+        
     }
-
+    
     public void RegistraraBD() {
         try {
             Connection conexion = conectar.ConecarBD();
@@ -52,16 +52,16 @@ public class frmRegistros extends javax.swing.JFrame {
             System.out.println("Error al conectar");
         }
     }
-
+    
     private boolean ComprovarCampos() {
         return txtApeliidos.getText().isEmpty()
                 || txtNombres.getText().isEmpty()
                 || txtTelefono.getText().isEmpty()
                 || cbxDepartamento.getSelectedItem().equals("=Seleccionar=")
                 || cbxProfesion.getSelectedItem().equals("=Seleccionar=");
-
+        
     }
-
+    
     private void LimoiarCampos() {
         txtApeliidos.setText(null);
         txtNombres.setText(null);
@@ -71,39 +71,39 @@ public class frmRegistros extends javax.swing.JFrame {
         txtNombres.requestFocus();
         txtBuscarID.setText(null);
     }
-
+    
     private boolean ComprobarTele(String telefono) {
         return telefono.length() == 9;
     }
-
+    
     public boolean VerificarTablaPersonas() {
         try {
             Connection conexion = conectar.ConecarBD();
             String consulta = "Select * from personas";
             PreparedStatement seleccionar = conexion.prepareStatement(consulta);
-
+            
             ResultSet consultar = seleccionar.executeQuery();
             if (consultar.next()) {
                 //JOptionPane.showMessageDialog(rootPane, "La tabla Personas si Tiene datos", "MI BASE DE DATOS", JOptionPane.WARNING_MESSAGE);
                 conectar.CerrarConecion();
-
+                
                 return true;
             }
-
+            
         } catch (HeadlessException | SQLException e) {
             System.out.println("Error al momento de verificar => " + e.getMessage());
         }
-
+        
         return false;
     }
-
+    
     private void RegistrarDatos() {
         String nombre = null;
         String apellido = null;
         String profesion = null;
         String telefono = null;
         String residencia = null;
-
+        
         try {
             Connection conexion = conectar.ConecarBD();
             String insert = "insert into personas values (?,?,?,?,?,?) ";
@@ -116,7 +116,7 @@ public class frmRegistros extends javax.swing.JFrame {
                 telefono = txtTelefono.getText();
                 profesion = cbxProfesion.getSelectedItem().toString();
                 residencia = cbxDepartamento.getSelectedItem().toString();
-
+                
                 if (!ComprobarTele(telefono)) {
                     JOptionPane.showMessageDialog(rootPane, "El telefono debe ser de 9 digitos");
                 } else if (ComprobarRepetidos(nombre, apellido, profesion, telefono, residencia) == true) {
@@ -132,30 +132,30 @@ public class frmRegistros extends javax.swing.JFrame {
 
                     //ejecutamos la consulta
                     insertar.executeUpdate();
-
+                    
                     LimoiarCampos();
                     JOptionPane.showMessageDialog(rootPane, "Registrado correctamente", "Perfecto", JOptionPane.INFORMATION_MESSAGE);
-
+                    
                 }
-
+                
             }
             conectar.CerrarConecion();
         } catch (HeadlessException | SQLException e) {
             System.out.println("Error al registrar datos => " + e.getMessage());
         }
     }
-
+    
     private void VerRegistros() {
         taDatos.setText(null);
         try {
             if (VerificarTablaPersonas() == true) {
                 JOptionPane.showMessageDialog(null, "La tabla Personas si Tiene Datos", "UPSS", JOptionPane.WARNING_MESSAGE);
-
+                
                 Connection conexion = conectar.ConecarBD();
                 String consulta = "select * from personas";
                 PreparedStatement seleccion = conexion.prepareStatement(consulta);
                 ResultSet consut = seleccion.executeQuery();
-
+                
                 while (consut.next()) {
                     taDatos.append(consut.getString(1));
                     taDatos.append("     ");
@@ -170,9 +170,9 @@ public class frmRegistros extends javax.swing.JFrame {
                     taDatos.append(consut.getString(6));
                     taDatos.append("     ");
                     taDatos.append("\n");
-
+                    
                 }
-
+                
                 conectar.CerrarConecion();
             } else {
                 JOptionPane.showMessageDialog(rootPane, "La tabla Personas no Tiene Datos", "UPSS", JOptionPane.WARNING_MESSAGE);
@@ -181,12 +181,12 @@ public class frmRegistros extends javax.swing.JFrame {
             System.out.println("Error al Momento de Actualizar los datos => " + e.getMessage());
         }
     }
-
+    
     private boolean ComprobarID(int id) {
         try {
             Connection conexion = conectar.ConecarBD();
             String select = "select * from personas where id = ?";
-
+            
             PreparedStatement consulta = conexion.prepareStatement(select);
             consulta.setInt(1, id);
             ResultSet buscar = consulta.executeQuery();
@@ -199,7 +199,7 @@ public class frmRegistros extends javax.swing.JFrame {
         }
         return false;
     }
-
+    
     private void eliminarRegistro() {
         try {
             int id;
@@ -214,21 +214,21 @@ public class frmRegistros extends javax.swing.JFrame {
                     Connection conexion = conectar.ConecarBD();
                     String eliminarConsulta = "delete from personas where id = ?";
                     PreparedStatement eliminar = conexion.prepareStatement(eliminarConsulta);
-
+                    
                     eliminar.setString(1, id + "");
                     eliminar.executeUpdate();
                     LimoiarCampos();
                     JOptionPane.showMessageDialog(rootPane, "El registro con el ID = " + id + " a sido eliminado");
                 }
-
+                
                 conectar.CerrarConecion();
             }
-
+            
         } catch (HeadlessException | NumberFormatException | SQLException e) {
             System.out.println("Error al eliminar => " + e.getMessage());
         }
     }
-
+    
     private void ModificarRegistro() {
         int id;
         String nombres, apellidos, telefono, profesion, residencia;
@@ -237,7 +237,7 @@ public class frmRegistros extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(rootPane, "Por favor ingresar el Id", "UPSS", JOptionPane.WARNING_MESSAGE);
             } else {
                 id = Integer.parseInt(txtBuscarID.getText());
-
+                
                 if (ComprobarID(id) == true) {
                     Connection conexion = conectar.ConecarBD();
                     String modificar = "update personas set nombre = ?, apellido = ?, telefono = ? , profesion = ?, residencia = ? where id =   " + id;
@@ -247,7 +247,7 @@ public class frmRegistros extends javax.swing.JFrame {
                     telefono = txtTelefono.getText();
                     profesion = cbxProfesion.getSelectedItem().toString();
                     residencia = cbxDepartamento.getSelectedItem().toString();
-
+                    
                     if (ComprovarCampos() == true) {
                         JOptionPane.showMessageDialog(rootPane, "POR FAVOR COMPLETAR LOS CAMPOS", "UPSS", JOptionPane.WARNING_MESSAGE);
                     } else if (!ComprobarTele(telefono) == true) {
@@ -263,54 +263,54 @@ public class frmRegistros extends javax.swing.JFrame {
                         LimoiarCampos();
                         modificando.executeUpdate();
                         JOptionPane.showMessageDialog(rootPane, "Registro con ID => " + id + " Modificado Exictosamente");
-
+                        
                         conectar.CerrarConecion();
                     }
-
+                    
                 } else {
                     JOptionPane.showMessageDialog(rootPane, "Registro con ID => " + id + " no encontrado", "UPSS", JOptionPane.WARNING_MESSAGE);
                 }
             }
-
+            
         } catch (HeadlessException | NumberFormatException | SQLException e) {
             System.out.println("Error en Modificar => " + e.getMessage());
         }
     }
-
+    
     private void botonBuscar() {
         int id;
         try {
-
+            
             if (txtBuscarID.getText().trim().isEmpty()) {
                 JOptionPane.showMessageDialog(rootPane, "Por favor Completar el Campo de Buscar ID", "UPSS", JOptionPane.WARNING_MESSAGE);
             } else {
                 id = Integer.parseInt(txtBuscarID.getText());
                 if (ComprobarID(id) == true) {
                     String consulta = "select * from personas where id = ? ";
-
+                    
                     Connection conexion = conectar.ConecarBD();
                     PreparedStatement mostrar = conexion.prepareStatement(consulta);
                     mostrar.setString(1, id + "");
-
+                    
                     ResultSet mostrando = mostrar.executeQuery();
-
+                    
                     while (mostrando.next()) {
                         txtNombres.setText(mostrando.getString("nombre"));
                         cbxProfesion.setSelectedItem(mostrando.getString("profesion"));
                         cbxDepartamento.setSelectedItem(mostrando.getString("residencia"));
-
+                        
                         txtTelefono.setText(mostrando.getString("telefono"));
-
+                        
                         txtApeliidos.setText(mostrando.getString("apellido"));
                     }
                     JOptionPane.showMessageDialog(rootPane, "SE ENCONTRANDOS DATOS DEL REGISTRO CON ID => " + id, "PERFECTO", JOptionPane.WARNING_MESSAGE);
-
+                    
                     conectar.CerrarConecion();
                 } else {
                     JOptionPane.showMessageDialog(rootPane, "No se encontraron datos con el ID => " + id);
                 }
             }
-
+            
         } catch (HeadlessException | NumberFormatException | SQLException e) {
             System.out.println("Error en buscar => " + e.getMessage());
         }
@@ -343,6 +343,7 @@ public class frmRegistros extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         taDatos = new javax.swing.JTextArea();
         btnBuscarID = new javax.swing.JButton();
+        btnRegistrar1 = new javax.swing.JButton();
 
         btnRegistrar4.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
         btnRegistrar4.setText("Eliminar");
@@ -428,6 +429,14 @@ public class frmRegistros extends javax.swing.JFrame {
             }
         });
 
+        btnRegistrar1.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
+        btnRegistrar1.setText("Ver Registro en una Tabla");
+        btnRegistrar1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnRegistrar1ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -456,7 +465,7 @@ public class frmRegistros extends javax.swing.JFrame {
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addComponent(cbxProfesion, javax.swing.GroupLayout.PREFERRED_SIZE, 271, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 45, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(cbxDepartamento, javax.swing.GroupLayout.PREFERRED_SIZE, 264, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addComponent(txtTelefono, javax.swing.GroupLayout.PREFERRED_SIZE, 224, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -466,7 +475,9 @@ public class frmRegistros extends javax.swing.JFrame {
                                 .addComponent(txtBuscarID)))
                         .addGap(90, 90, 90))))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap()
+                .addComponent(btnRegistrar1, javax.swing.GroupLayout.PREFERRED_SIZE, 155, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 730, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(66, 66, 66))
         );
@@ -500,7 +511,11 @@ public class frmRegistros extends javax.swing.JFrame {
                     .addComponent(btnEliminar)
                     .addComponent(btnBuscarID))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 270, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 270, Short.MAX_VALUE)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(btnRegistrar1)))
                 .addGap(12, 12, 12))
         );
 
@@ -542,7 +557,7 @@ public class frmRegistros extends javax.swing.JFrame {
         cbxProfesion.addItem("Mecanico");
         cbxProfesion.addItem("Ingenieria Electrica");
         cbxProfesion.addItem("Ingenieria Espacial");
-
+        
         cbxDepartamento.addItem("Amazonas");
         cbxDepartamento.addItem("Áncash");
         cbxDepartamento.addItem("Apurímac");
@@ -598,6 +613,14 @@ public class frmRegistros extends javax.swing.JFrame {
 
     }//GEN-LAST:event_btnBuscarIDActionPerformed
 
+    private void btnRegistrar1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegistrar1ActionPerformed
+        frmDatos p = new frmDatos();
+        p.setVisible(true);
+        
+        //ceramos
+        this.dispose();
+    }//GEN-LAST:event_btnRegistrar1ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -638,6 +661,7 @@ public class frmRegistros extends javax.swing.JFrame {
     private javax.swing.JButton btnEliminar;
     private javax.swing.JButton btnModificar;
     private javax.swing.JButton btnRegistrar;
+    private javax.swing.JButton btnRegistrar1;
     private javax.swing.JButton btnRegistrar4;
     private javax.swing.JButton btnVerRegistros;
     private javax.swing.JComboBox<String> cbxDepartamento;
