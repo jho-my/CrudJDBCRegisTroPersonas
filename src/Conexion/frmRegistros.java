@@ -57,8 +57,8 @@ public class frmRegistros extends javax.swing.JFrame {
         return txtApeliidos.getText().isEmpty()
                 || txtNombres.getText().isEmpty()
                 || txtTelefono.getText().isEmpty()
-                || cbxDepartamento.getSelectedItem().equals("=Selecionar=")
-                || cbxProfesion.getSelectedItem().equals("=Selecionar=");
+                || cbxDepartamento.getSelectedItem().equals("=Seleccionar=")
+                || cbxProfesion.getSelectedItem().equals("=Seleccionar=");
 
     }
 
@@ -181,6 +181,47 @@ public class frmRegistros extends javax.swing.JFrame {
         }
     }
 
+    private boolean ComprobarID(int id) {
+        try {
+            Connection conexion = conectar.ConecarBD();
+            String select = "select * from personas where id = ?";
+
+            PreparedStatement consulta = conexion.prepareStatement(select);
+            consulta.setInt(1, id);
+            ResultSet buscar = consulta.executeQuery();
+            if (buscar.next()) {
+                return true;
+            }
+            conectar.CerrarConecion();
+        } catch (SQLException e) {
+            System.out.println("Error al comprobar Id: ");
+        }
+        return false;
+    }
+
+    private void eliminarRegistro() {
+        try {
+            int id;
+            id = Integer.parseInt(txtBuscarID.getText());
+            if (ComprobarID(id) == false) {
+                JOptionPane.showMessageDialog(rootPane, "El Regitro con el id " + id
+                        + "\n No existe ", "Alerta", JOptionPane.WARNING_MESSAGE);
+            } else {
+                Connection conexion = conectar.ConecarBD();
+                String eliminarConsulta = "delete from personas where id = ?";
+                PreparedStatement eliminar = conexion.prepareStatement(eliminarConsulta);
+
+                eliminar.setString(1, id + "");
+                eliminar.executeUpdate();
+                JOptionPane.showMessageDialog(rootPane, "El registro con el ID = " + id + " a sido eliminado");
+            }
+
+            conectar.CerrarConecion();
+        } catch (HeadlessException | NumberFormatException | SQLException e) {
+            System.out.println("Error al eliminar => " + e.getMessage());
+        }
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -292,15 +333,14 @@ public class frmRegistros extends javax.swing.JFrame {
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addComponent(cbxProfesion, javax.swing.GroupLayout.PREFERRED_SIZE, 271, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 45, Short.MAX_VALUE)
                                 .addComponent(cbxDepartamento, javax.swing.GroupLayout.PREFERRED_SIZE, 264, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addComponent(txtTelefono, javax.swing.GroupLayout.PREFERRED_SIZE, 224, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 167, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(txtBuscarID, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 36, Short.MAX_VALUE)))
+                                .addComponent(jLabel2)
+                                .addGap(18, 18, 18)
+                                .addComponent(txtBuscarID)))
                         .addGap(90, 90, 90))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(95, 95, 95)
@@ -335,9 +375,9 @@ public class frmRegistros extends javax.swing.JFrame {
                             .addComponent(txtTelefono, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(21, 21, 21)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(txtBuscarID, javax.swing.GroupLayout.DEFAULT_SIZE, 39, Short.MAX_VALUE)
-                            .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(txtBuscarID, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnRegistrar)
@@ -432,7 +472,7 @@ public class frmRegistros extends javax.swing.JFrame {
     }//GEN-LAST:event_btnRegistrar2ActionPerformed
 
     private void btnRegistrar3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegistrar3ActionPerformed
-        // TODO add your handling code here:
+        eliminarRegistro();
     }//GEN-LAST:event_btnRegistrar3ActionPerformed
 
     /**
