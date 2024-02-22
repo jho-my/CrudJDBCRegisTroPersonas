@@ -69,6 +69,7 @@ public class frmRegistros extends javax.swing.JFrame {
         cbxDepartamento.setSelectedIndex(0);
         cbxProfesion.setSelectedIndex(0);
         txtNombres.requestFocus();
+        txtBuscarID.setText(null);
     }
 
     private boolean ComprobarTele(String telefono) {
@@ -202,23 +203,116 @@ public class frmRegistros extends javax.swing.JFrame {
     private void eliminarRegistro() {
         try {
             int id;
-            id = Integer.parseInt(txtBuscarID.getText());
-            if (ComprobarID(id) == false) {
-                JOptionPane.showMessageDialog(rootPane, "El Regitro con el id " + id
-                        + "\n No existe ", "Alerta", JOptionPane.WARNING_MESSAGE);
+            if (txtBuscarID.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(rootPane, "DIGITAR ID", "UPSS", JOptionPane.WARNING_MESSAGE);
             } else {
-                Connection conexion = conectar.ConecarBD();
-                String eliminarConsulta = "delete from personas where id = ?";
-                PreparedStatement eliminar = conexion.prepareStatement(eliminarConsulta);
+                id = Integer.parseInt(txtBuscarID.getText());
+                if (ComprobarID(id) == false) {
+                    JOptionPane.showMessageDialog(rootPane, "El Regitro con el id " + id
+                            + "\n No existe ", "Alerta", JOptionPane.WARNING_MESSAGE);
+                } else {
+                    Connection conexion = conectar.ConecarBD();
+                    String eliminarConsulta = "delete from personas where id = ?";
+                    PreparedStatement eliminar = conexion.prepareStatement(eliminarConsulta);
 
-                eliminar.setString(1, id + "");
-                eliminar.executeUpdate();
-                JOptionPane.showMessageDialog(rootPane, "El registro con el ID = " + id + " a sido eliminado");
+                    eliminar.setString(1, id + "");
+                    eliminar.executeUpdate();
+                    LimoiarCampos();
+                    JOptionPane.showMessageDialog(rootPane, "El registro con el ID = " + id + " a sido eliminado");
+                }
+
+                conectar.CerrarConecion();
             }
 
-            conectar.CerrarConecion();
         } catch (HeadlessException | NumberFormatException | SQLException e) {
             System.out.println("Error al eliminar => " + e.getMessage());
+        }
+    }
+
+    private void ModificarRegistro() {
+        int id;
+        String nombres, apellidos, telefono, profesion, residencia;
+        try {
+            if (txtBuscarID.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(rootPane, "Por favor ingresar el Id", "UPSS", JOptionPane.WARNING_MESSAGE);
+            } else {
+                id = Integer.parseInt(txtBuscarID.getText());
+
+                if (ComprobarID(id) == true) {
+                    Connection conexion = conectar.ConecarBD();
+                    String modificar = "update personas set nombre = ?, apellido = ?, telefono = ? , profesion = ?, residencia = ? where id =   " + id;
+                    PreparedStatement modificando = conexion.prepareStatement(modificar);
+                    nombres = txtNombres.getText();
+                    apellidos = txtApeliidos.getText();
+                    telefono = txtTelefono.getText();
+                    profesion = cbxProfesion.getSelectedItem().toString();
+                    residencia = cbxDepartamento.getSelectedItem().toString();
+
+                    if (ComprovarCampos() == true) {
+                        JOptionPane.showMessageDialog(rootPane, "POR FAVOR COMPLETAR LOS CAMPOS", "UPSS", JOptionPane.WARNING_MESSAGE);
+                    } else if (!ComprobarTele(telefono) == true) {
+                        JOptionPane.showMessageDialog(rootPane, "El telefono debe ser de 9 digitos");
+                    } else {
+                        modificando.setString(1, nombres);
+                        modificando.setString(2, apellidos);
+                        modificando.setString(3, telefono);
+                        modificando.setString(4, profesion);
+                        modificando.setString(5, residencia);
+
+                        //limpiamos los campos 
+                        LimoiarCampos();
+                        modificando.executeUpdate();
+                        JOptionPane.showMessageDialog(rootPane, "Registro con ID => " + id + " Modificado Exictosamente");
+
+                        conectar.CerrarConecion();
+                    }
+
+                } else {
+                    JOptionPane.showMessageDialog(rootPane, "Registro con ID => " + id + " no encontrado", "UPSS", JOptionPane.WARNING_MESSAGE);
+                }
+            }
+
+        } catch (HeadlessException | NumberFormatException | SQLException e) {
+            System.out.println("Error en Modificar => " + e.getMessage());
+        }
+    }
+
+    private void botonBuscar() {
+        int id;
+        try {
+
+            if (txtBuscarID.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(rootPane, "Por favor Completar el Campo de Buscar ID", "UPSS", JOptionPane.WARNING_MESSAGE);
+            } else {
+                id = Integer.parseInt(txtBuscarID.getText());
+                if (ComprobarID(id) == true) {
+                    String consulta = "select * from personas where id = ? ";
+
+                    Connection conexion = conectar.ConecarBD();
+                    PreparedStatement mostrar = conexion.prepareStatement(consulta);
+                    mostrar.setString(1, id + "");
+
+                    ResultSet mostrando = mostrar.executeQuery();
+
+                    while (mostrando.next()) {
+                        txtNombres.setText(mostrando.getString("nombre"));
+                        cbxProfesion.setSelectedItem(mostrando.getString("profesion"));
+                        cbxDepartamento.setSelectedItem(mostrando.getString("residencia"));
+
+                        txtTelefono.setText(mostrando.getString("telefono"));
+
+                        txtApeliidos.setText(mostrando.getString("apellido"));
+                    }
+                    JOptionPane.showMessageDialog(rootPane, "SE ENCONTRANDOS DATOS DEL REGISTRO CON ID => " + id, "PERFECTO", JOptionPane.WARNING_MESSAGE);
+
+                    conectar.CerrarConecion();
+                } else {
+                    JOptionPane.showMessageDialog(rootPane, "No se encontraron datos con el ID => " + id);
+                }
+            }
+
+        } catch (HeadlessException | NumberFormatException | SQLException e) {
+            System.out.println("Error en buscar => " + e.getMessage());
         }
     }
 
@@ -231,6 +325,7 @@ public class frmRegistros extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        btnRegistrar4 = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jSeparator1 = new javax.swing.JSeparator();
@@ -241,12 +336,21 @@ public class frmRegistros extends javax.swing.JFrame {
         cbxDepartamento = new javax.swing.JComboBox<>();
         btnRegistrar = new javax.swing.JButton();
         btnVerRegistros = new javax.swing.JButton();
-        btnRegistrar2 = new javax.swing.JButton();
-        btnRegistrar3 = new javax.swing.JButton();
+        btnModificar = new javax.swing.JButton();
+        btnEliminar = new javax.swing.JButton();
         jLabel2 = new javax.swing.JLabel();
         txtBuscarID = new javax.swing.JTextField();
         jScrollPane1 = new javax.swing.JScrollPane();
         taDatos = new javax.swing.JTextArea();
+        btnBuscarID = new javax.swing.JButton();
+
+        btnRegistrar4.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
+        btnRegistrar4.setText("Eliminar");
+        btnRegistrar4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnRegistrar4ActionPerformed(evt);
+            }
+        });
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -293,19 +397,19 @@ public class frmRegistros extends javax.swing.JFrame {
             }
         });
 
-        btnRegistrar2.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
-        btnRegistrar2.setText("Modificar");
-        btnRegistrar2.addActionListener(new java.awt.event.ActionListener() {
+        btnModificar.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
+        btnModificar.setText("Modificar");
+        btnModificar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnRegistrar2ActionPerformed(evt);
+                btnModificarActionPerformed(evt);
             }
         });
 
-        btnRegistrar3.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
-        btnRegistrar3.setText("Eliminar");
-        btnRegistrar3.addActionListener(new java.awt.event.ActionListener() {
+        btnEliminar.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
+        btnEliminar.setText("Eliminar");
+        btnEliminar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnRegistrar3ActionPerformed(evt);
+                btnEliminarActionPerformed(evt);
             }
         });
 
@@ -316,6 +420,14 @@ public class frmRegistros extends javax.swing.JFrame {
         taDatos.setRows(5);
         jScrollPane1.setViewportView(taDatos);
 
+        btnBuscarID.setFont(new java.awt.Font("Consolas", 0, 14)); // NOI18N
+        btnBuscarID.setText("Buscar POR ID");
+        btnBuscarID.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBuscarIDActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -325,6 +437,17 @@ public class frmRegistros extends javax.swing.JFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(23, 23, 23)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(btnRegistrar, javax.swing.GroupLayout.PREFERRED_SIZE, 155, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnVerRegistros, javax.swing.GroupLayout.PREFERRED_SIZE, 207, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnModificar, javax.swing.GroupLayout.PREFERRED_SIZE, 168, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnEliminar, javax.swing.GroupLayout.PREFERRED_SIZE, 167, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnBuscarID, javax.swing.GroupLayout.PREFERRED_SIZE, 167, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(txtNombres, javax.swing.GroupLayout.PREFERRED_SIZE, 224, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -341,20 +464,11 @@ public class frmRegistros extends javax.swing.JFrame {
                                 .addComponent(jLabel2)
                                 .addGap(18, 18, 18)
                                 .addComponent(txtBuscarID)))
-                        .addGap(90, 90, 90))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(95, 95, 95)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(btnRegistrar, javax.swing.GroupLayout.PREFERRED_SIZE, 155, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(btnVerRegistros, javax.swing.GroupLayout.PREFERRED_SIZE, 207, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(btnRegistrar2, javax.swing.GroupLayout.PREFERRED_SIZE, 168, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(btnRegistrar3, javax.swing.GroupLayout.PREFERRED_SIZE, 167, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 730, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                        .addGap(90, 90, 90))))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 730, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(66, 66, 66))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -382,8 +496,9 @@ public class frmRegistros extends javax.swing.JFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnRegistrar)
                     .addComponent(btnVerRegistros)
-                    .addComponent(btnRegistrar2)
-                    .addComponent(btnRegistrar3))
+                    .addComponent(btnModificar)
+                    .addComponent(btnEliminar)
+                    .addComponent(btnBuscarID))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 270, Short.MAX_VALUE)
                 .addGap(12, 12, 12))
@@ -455,7 +570,6 @@ public class frmRegistros extends javax.swing.JFrame {
         cbxDepartamento.addItem("Tumbes");
         cbxDepartamento.addItem("Ucayali");
 
-
     }//GEN-LAST:event_formWindowOpened
 
     private void btnRegistrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegistrarActionPerformed
@@ -467,13 +581,22 @@ public class frmRegistros extends javax.swing.JFrame {
         VerRegistros();
     }//GEN-LAST:event_btnVerRegistrosActionPerformed
 
-    private void btnRegistrar2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegistrar2ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_btnRegistrar2ActionPerformed
+    private void btnModificarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnModificarActionPerformed
+        ModificarRegistro();
+    }//GEN-LAST:event_btnModificarActionPerformed
 
-    private void btnRegistrar3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegistrar3ActionPerformed
+    private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarActionPerformed
         eliminarRegistro();
-    }//GEN-LAST:event_btnRegistrar3ActionPerformed
+    }//GEN-LAST:event_btnEliminarActionPerformed
+
+    private void btnRegistrar4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegistrar4ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnRegistrar4ActionPerformed
+
+    private void btnBuscarIDActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarIDActionPerformed
+        botonBuscar();
+
+    }//GEN-LAST:event_btnBuscarIDActionPerformed
 
     /**
      * @param args the command line arguments
@@ -511,9 +634,11 @@ public class frmRegistros extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnBuscarID;
+    private javax.swing.JButton btnEliminar;
+    private javax.swing.JButton btnModificar;
     private javax.swing.JButton btnRegistrar;
-    private javax.swing.JButton btnRegistrar2;
-    private javax.swing.JButton btnRegistrar3;
+    private javax.swing.JButton btnRegistrar4;
     private javax.swing.JButton btnVerRegistros;
     private javax.swing.JComboBox<String> cbxDepartamento;
     private javax.swing.JComboBox<String> cbxProfesion;
